@@ -1,1 +1,2 @@
-window.TICKETWAVES_API_URL='https://ticketwaves-backend-3.onrender.com';window.TICKETWAVES_FRONTEND_URL='https://yasiyrshehu-byte.github.io/TicketWAVES-frontend';
+window.TICKETWAVES_API_URL='https://ticketwaves-backend-k1hs.onrender.com';
+window.TICKETWAVES_FRONTEND_URL='https://yasiyrshehu-byte.github.io/TicketWAVES-frontend';
