@@ -1,0 +1,27 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>TicketWAVES Payment</title><style>body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;text-align:center;padding:70px 24px;background:#fff;color:#111827}h1{font-size:38px;line-height:1.1;margin:0 auto 24px;max-width:620px}p{font-size:18px;line-height:1.5;max-width:620px;margin:0 auto;color:#4b5563}.spinner{width:34px;height:34px;border:4px solid #dbe4f5;border-right-color:#1765f5;border-radius:50%;animation:spin .7s linear infinite;margin:28px auto}@keyframes spin{to{transform:rotate(360deg)}}.ok{color:#159a62}.error{color:#e44852}.btn{display:inline-block;margin-top:24px;padding:14px 20px;border-radius:12px;background:#1765f5;color:#fff;text-decoration:none;font-weight:900}</style></head><body><h1 id="title">Confirming your payment…</h1><div class="spinner" id="spinner"></div><p id="m">We're securely confirming your Paystack payment and generating your ticket. Please wait.</p><a id="back" class="btn" style="display:none" href="./index.html">Return to TicketWAVES</a><script src="./config.js"></script><script>
+const API=((window.TICKETWAVES_API_URL||'').replace(/\/$/,'')+'/api');
+const qs=new URLSearchParams(location.search);
+const ref=qs.get('reference')||qs.get('trxref')||localStorage.getItem('tw_pending_payment_reference')||'';
+const title=document.getElementById('title'),m=document.getElementById('m'),spinner=document.getElementById('spinner'),back=document.getElementById('back');
+if(ref)localStorage.setItem('tw_pending_payment_reference',ref);
+async function verify(){
+  if(!ref){throw Error('Payment reference is missing. Return to TicketWAVES and check My Tickets.');}
+  const r=await fetch(API+'/payment/verify/'+encodeURIComponent(ref),{cache:'no-store'});
+  const text=await r.text();let d={};try{d=text?JSON.parse(text):{}}catch{d={message:text}};
+  if(r.status===202||d.pending)return false;
+  if(!r.ok)throw Error(d.message||'Unable to confirm payment');
+  if(!d.status)throw Error(d.message||'Payment could not be confirmed');
+  return true;
+}
+async function run(){
+  let lastError='';
+  for(let i=0;i<30;i++){
+    try{if(await verify()){localStorage.removeItem('tw_pending_payment_reference');title.textContent='Payment confirmed!';title.className='ok';spinner.style.display='none';m.textContent='Your ticket has been generated and added to My Tickets.';setTimeout(()=>location.replace('./index.html?payment=success'),900);return;}}
+    catch(e){lastError=e.message||'Unable to confirm payment';if(i>24)break;}
+    m.textContent='Payment received. We are finishing your ticket now…';
+    await new Promise(r=>setTimeout(r,1500));
+  }
+  spinner.style.display='none';title.textContent='Payment received — ticket confirmation is taking longer than expected';title.className='error';m.textContent=lastError||'Return to TicketWAVES and open My Tickets. The system will continue checking the payment.';back.style.display='inline-block';
+}
+run();
+</script></body></html>
