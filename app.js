@@ -59,8 +59,8 @@ async function registerUser(e){e.preventDefault();const btn=e.submitter||e.targe
 function countries(){const c=['Nigeria','United Kingdom','United States','Canada','Ghana','Kenya','South Africa','France','Germany','Belgium','Spain','Netherlands','Australia','Other'];const el=$('registerCountry');if(el)el.innerHTML=c.map(x=>`<option>${x}</option>`).join('')}
 function showForgot(){openSheet(`<div class="sheet-kicker">ACCOUNT SECURITY</div><h2>Reset your password</h2><p class="muted">We’ll send a secure reset link if the email exists.</p><form class="form-card" style="box-shadow:none;padding:0;border:0" onsubmit="forgot(event)"><label>Email<input id="forgotEmail" type="email" required></label><button id="forgotSubmit" class="primary wide action-btn">Send reset link</button></form>`)}
 async function forgot(e){e.preventDefault();const btn=$('forgotSubmit');setBusy(btn,true,'Sending');try{const d=await api('/auth/forgot-password',{method:'POST',body:JSON.stringify({email:$('forgotEmail').value.trim()})});closeSheet();toast(d.message)}catch(err){toast(err.message)}finally{setBusy(btn,false)}}
-function openSheet(html){$('sheetBody').innerHTML=html;$('sheet').classList.add('show');document.body.classList.add('no-scroll')}
-function closeSheet(){$('sheet').classList.remove('show');document.body.classList.remove('no-scroll')}
+function openSheet(html){const sheet=$('sheet');const body=$('sheetBody');if(!sheet||!body){toast('TicketWAVES form container is unavailable. Please refresh the page.');return}body.innerHTML=html;sheet.classList.add('open');document.body.classList.add('no-scroll')}
+function closeSheet(){const sheet=$('sheet');if(sheet)sheet.classList.remove('open');document.body.classList.remove('no-scroll')}
 async function openNotifications(){if(!token){go('login');return}try{const ns=await api('/notifications');const cards=ns.length?ns.map(n=>`<div class="notification ${n.read?'':'unread'}"><b>${esc(n.title)}</b><p>${esc(n.message)}</p><small class="muted">${new Date(n.createdAt).toLocaleString()}</small></div>`).join(''):'<div class="empty">You are all caught up. ♡</div>';openSheet(`<div class="sheet-kicker">NOTIFICATIONS</div><h2>Your updates</h2><button class="text-btn" onclick="readAll()">Mark all read</button>${cards}`);if(ns.some(n=>!n.read))$('notifDot')?.classList.remove('hidden')}catch(e){toast(e.message)}}
 async function readAll(){try{await api('/notifications/read-all',{method:'POST'});$('notifDot')?.classList.add('hidden');openNotifications()}catch(e){toast(e.message)}}
 function renderAdmin(){if(user?.role!=='admin'){toast('Administrator access required.');return}const b=$('adminBox');b.innerHTML=`<div class="page-title"><small>CONTROL ROOM</small><h1>Admin dashboard 🛠️</h1><p>Manage TicketWAVES without leaving the mobile experience.</p></div><div class="admin-tabs"><button class="active" onclick="adminTab('dash',this)">Overview</button><button onclick="adminTab('users',this)">Users</button><button onclick="adminTab('events',this)">Events</button><button onclick="adminTab('tickets',this)">Tickets</button><button onclick="adminTab('orders',this)">Orders</button><button onclick="adminTab('sell',this)">Sell requests</button><button onclick="adminTab('giveaways',this)">Giveaways</button></div><div id="adminDash" class="admin-section active"></div><div id="adminUsers" class="admin-section"></div><div id="adminEvents" class="admin-section"></div><div id="adminTickets" class="admin-section"></div><div id="adminOrders" class="admin-section"></div><div id="adminSell" class="admin-section"></div><div id="adminGiveaways" class="admin-section"></div><button class="danger wide" style="margin-top:16px" onclick="logout()">Sign out</button>`;loadAdminDash()}
@@ -68,55 +68,19 @@ function adminTab(name,btn){document.querySelectorAll('.admin-section').forEach(
 async function loadAdminDash(){try{const d=await api('/admin/stats');$('adminDash').innerHTML=`<div class="stats">${Object.entries(d).map(([k,v])=>`<div class="stat"><small>${esc(k.replace(/([A-Z])/g,' $1'))}</small><strong>${esc(v)}</strong></div>`).join('')}</div><div class="form-card" style="margin-top:12px"><h3>Quick action</h3><p class="muted">Use the tabs above to manage the live system. Changes are protected by the admin API.</p></div>`}catch(e){$('adminDash').innerHTML=`<div class="empty">${esc(e.message)}</div>`}}
 async function loadAdminUsers(){try{const xs=await api('/admin/users');$('adminUsers').innerHTML=`<div class="admin-list">${xs.map(u=>`<div class="admin-row"><div><b>${esc(u.name||u.email)}</b><br><small>${esc(u.email)} · ${esc(u.role)} ${u.suspended?'· SUSPENDED':''}</small></div><button class="secondary action-btn" onclick="suspendAdmin('${esc(u.id||u._id)}',${!u.suspended})">${u.suspended?'Restore':'Suspend'}</button></div>`).join('')}</div>`}catch(e){$('adminUsers').innerHTML=`<div class="empty">${esc(e.message)}</div>`}}
 async function suspendAdmin(id,value){try{await api('/admin/users/'+encodeURIComponent(id)+'/suspend',{method:'PUT',body:JSON.stringify({suspended:value})});toast(value?'User suspended.':'User restored.');loadAdminUsers()}catch(e){toast(e.message)}}
-async function loadAdminEvents(){
-  const box=$('adminEvents');
-  if(!box)return;
-
-  // Always render the Create Event action first. This prevents a slow/cold
-  // backend response from making the Add Event button disappear.
-  box.innerHTML=`<button id="adminCreateEventBtn" type="button" class="primary action-btn" style="width:100%;min-height:52px;font-size:16px;margin-bottom:12px">+ Create event</button><div id="adminEventList" class="admin-list" style="margin-top:10px"><div class="empty">Loading events…</div></div>`;
-  const createBtn=$('adminCreateEventBtn');
-  if(createBtn)createBtn.addEventListener('click',()=>{if(typeof window.createAdminEvent==='function')window.createAdminEvent();else toast('Add Event is still loading. Please try again.');},{passive:true});
-
-  try{
-    const xs=await api('/admin/events');
-    const list=$('adminEventList');
-    if(!list)return;
-    list.innerHTML=xs.map(e=>{
-      const t=e.tickets?.[0]||{};
-      return `<div class="admin-row admin-event-row">
-        <div>
-          <b>${esc(e.title)}</b><br>
-          <small>${esc(e.date)} · ${esc(e.venue)} · ${esc(e.city||'')}</small><br>
-          <small>Price: ${esc(t.currencySymbol||'')}${Number(t.price||0).toLocaleString()} · Currency: ${esc(t.currency||'NGN')}</small>
-        </div>
-        <div class="admin-actions">
-          <button type="button" class="secondary action-btn" onclick="editAdminEvent('${esc(e.id||e._id)}')">Edit</button>
-          <button type="button" class="danger action-btn" onclick="archiveAdminEvent('${esc(e.id||e._id)}')">Archive</button>
-        </div>
-      </div>`;
-    }).join('')||'<div class="empty">No events yet. Tap + Create event to add your first event.</div>';
-  }catch(e){
-    const list=$('adminEventList');
-    if(list)list.innerHTML=`<div class="empty">Events could not be loaded right now.<br><small>${esc(e.message||'Server unavailable')}</small><br><button type="button" class="secondary action-btn" style="margin-top:10px" onclick="loadAdminEvents()">Retry</button></div>`;
-  }
-}
+async function loadAdminEvents(){try{const xs=await api('/admin/events');$('adminEvents').innerHTML=`<button class="primary action-btn" onclick="createAdminEvent()">+ Create event</button><div class="admin-list" style="margin-top:10px">${xs.map(e=>{const t=e.tickets?.[0]||{};return `<div class="admin-row admin-event-row"><div><b>${esc(e.title)}</b><br><small>${esc(e.date)} · ${esc(e.venue)} · ${esc(e.city||'')}</small><br><small>Price: ${esc(t.currencySymbol||'')}${Number(t.price||0).toLocaleString()} · Currency: ${esc(t.currency||'NGN')}</small></div><div class="admin-actions"><button class="secondary action-btn" onclick="editAdminEvent('${esc(e.id||e._id)}')">Edit</button><button class="danger action-btn" onclick="archiveAdminEvent('${esc(e.id||e._id)}')">Archive</button></div></div>`}).join('')}</div>`}catch(e){$('adminEvents').innerHTML=`<div class="empty">${esc(e.message)}</div>`}}
 async function archiveAdminEvent(id){if(!confirm('Archive this event and its available tickets?'))return;try{await api('/admin/events/'+encodeURIComponent(id),{method:'DELETE'});toast('Event archived.');loadAdminEvents()}catch(e){toast(e.message)}}
 function createAdminEvent(){
-  if(typeof window.openSheet!=='function'){
-    toast('Admin event form is still loading. Please try again.');
-    return;
-  }
   openSheet(`<div class="sheet-kicker">ADMIN EVENT</div><h2>Add an event</h2>
-  <p class="muted">Add the event artwork, event details and ticket information.</p>
+  <p class="muted">Add the event artwork now. You can use an image URL or upload an image from your phone.</p>
   <form class="form-card" style="box-shadow:none;padding:0;border:0" onsubmit="submitAdminEvent(event)">
-    <label>Event title<input id="aeTitle" required autocomplete="off"></label>
-    <label>Artist<input id="aeArtist" required autocomplete="off"></label>
+    <label>Event title<input id="aeTitle" required></label>
+    <label>Artist<input id="aeArtist" required></label>
     <label>Category<select id="aeCategory"><option>Concert</option><option>Sports</option><option>Theatre</option><option>Comedy</option><option>Festival</option><option>Other</option></select></label>
     <label>Date<input id="aeDate" type="date" required></label>
     <label>Time<input id="aeTime" type="time" required></label>
-    <label>Venue<input id="aeVenue" required autocomplete="off"></label>
-    <label>City<input id="aeCity" required autocomplete="off"></label>
+    <label>Venue<input id="aeVenue" required></label>
+    <label>City<input id="aeCity" required></label>
     <label>Country<select id="aeCountry" required><option>Nigeria</option><option>United States</option><option>Canada</option><option>United Kingdom</option><option>France</option><option>Germany</option><option>Belgium</option><option>Spain</option><option>Netherlands</option><option>Australia</option><option>Other</option></select></label>
     <label>Event image URL<input id="aeImage" type="url" placeholder="https://example.com/event-image.jpg" oninput="previewAdminImage()"></label>
     <label>Or upload image<input id="aeImageFile" type="file" accept="image/jpeg,image/png,image/webp" onchange="previewAdminImageFile(event)"></label>
@@ -125,9 +89,8 @@ function createAdminEvent(){
     <div class="two"><label>Ticket price<input id="aePrice" type="number" min="0" step="0.01" required></label><label>Currency<select id="aeCurrency"><option value="NGN">NGN — ₦</option><option value="USD">USD — $</option><option value="CAD">CAD — C$</option><option value="GBP">GBP — £</option><option value="EUR">EUR — €</option></select></label></div>
     <div class="two"><label>Section<input id="aeSection" value="General"></label><label>Row<input id="aeRow"></label></div>
     <label>Seat<input id="aeSeat"></label>
-    <button id="aeSubmit" type="submit" class="primary wide action-btn">Publish event</button>
+    <button id="aeSubmit" class="primary wide action-btn">Publish event</button>
   </form>`);
-  setTimeout(()=>document.getElementById('aeTitle')?.focus(),50);
 }
 async function editAdminEvent(id){
   try{
