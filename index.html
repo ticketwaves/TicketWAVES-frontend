@@ -1,0 +1,33 @@
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#10152f"><meta name="description" content="TicketWAVES — simple, friendly tickets for live moments.">
+<title>TicketWAVES · Live starts here</title><link rel="stylesheet" href="style.css">
+</head><body>
+<div id="app" class="app-shell">
+<header class="topbar"><a class="brand" href="#discover" onclick="go('discover')" aria-label="TicketWAVES home"><span class="brand-wave">t</span><span>TICKET<b>WAVES</b></span></a><div class="top-actions"><button class="icon-btn" onclick="openNotifications()" aria-label="Notifications">♡<i id="notifDot" class="notif-dot hidden"></i></button><button class="admin-top-btn hidden" id="adminTopBtn" onclick="go('admin')">Admin</button><button class="avatar-btn" id="avatarBtn" onclick="go('account')">☺</button></div></header>
+<main>
+<section id="discover" class="page active"><div class="dark-hero"><div class="container">
+<div class="tiny-label">WELCOME TO TICKETWAVES</div><h1>Find your next <span>favorite night.</span></h1><p>Concerts, sports, theatre and little moments you'll talk about for years.</p>
+<div class="search-wrap"><span>⌕</span><input id="searchInput" placeholder="Artist, event or venue" onkeydown="if(event.key==='Enter')loadEvents()"><button onclick="loadEvents()">Search</button></div>
+<div class="quick-row"><button class="quick active" onclick="setCategory('')">All</button><button class="quick" onclick="setCategory('Concert')">🎵 Concerts</button><button class="quick" onclick="setCategory('Sports')">⚽ Sports</button><button class="quick" onclick="setCategory('Theatre')">🎭 Theatre</button><button class="quick" onclick="setCategory('Comedy')">😂 Comedy</button></div>
+</div></div>
+<div class="container content-pad">
+<div class="friendly-banner"><div><small>YOUR TICKETS, ALL TOGETHER</small><h2>One tiny app. All your big nights. ✨</h2><p>Buy, receive, transfer and verify tickets without the headache.</p></div><div class="ticket-sticker">🎟️</div></div>
+<div class="section-head"><div><small>DISCOVER</small><h2>Popular right now</h2></div><button class="text-btn" onclick="loadEvents()">Refresh</button></div><div id="eventGrid" class="event-grid"><div class="skeleton-card"></div><div class="skeleton-card"></div></div>
+<div class="section-head"><div><small>HOW IT WORKS</small><h2>Easy as 1, 2, 3</h2></div></div><div class="steps"><div><b>1</b><h3>Pick a night</h3><p>Choose an event and the seats you like.</p></div><div><b>2</b><h3>Checkout</h3><p>Pay securely and keep your confirmation.</p></div><div><b>3</b><h3>Show up</h3><p>Open your ticket and let the good time begin.</p></div></div>
+</div></section>
+<section id="foryou" class="page"><div class="container content-pad"><div class="page-title"><small>JUST FOR YOU</small><h1>For You 💙</h1><p>Fresh picks from the TicketWAVES event list.</p></div><div id="forYouGrid" class="event-grid"></div></div></section>
+<section id="tickets" class="page"><div class="container content-pad"><div class="page-title"><small>YOUR PASSES</small><h1>My Tickets 🎟️</h1><p>Everything you need for your next entrance.</p></div><div id="ticketsBox"></div></div></section>
+<section id="sell" class="page"><div class="container content-pad"><div class="page-title"><small>PLANS CHANGED?</small><h1>Sell a ticket</h1><p>Send us the ticket details and our team can review your resale request.</p></div><div id="sellBox"></div></div></section>
+<section id="account" class="page"><div class="container content-pad"><div id="accountBox"></div></div></section>
+<section id="eventDetails" class="page"><div class="container content-pad" id="eventDetailsBox"></div></section>
+<section id="checkout" class="page"><div class="container content-pad" id="checkoutBox"></div></section>
+<section id="login" class="page"><div class="container narrow"><div class="auth-card"><div class="auth-logo">⌁</div><small>WELCOME BACK</small><h1>Good to see you.</h1><p>Sign in and get back to the fun.</p><form onsubmit="login(event)"><label>Email<input id="loginEmail" type="email" autocomplete="email" required></label><label>Password<input id="loginPassword" type="password" autocomplete="current-password" required></label><button class="primary wide">Sign in</button></form><button class="link-btn" onclick="showForgot()">Forgot password?</button><div class="divider">or</div><button class="secondary wide" onclick="go('register')">Create a new account</button></div></div></section>
+<section id="register" class="page"><div class="container narrow"><div class="auth-card"><div class="auth-logo pink">✦</div><small>LET'S GET YOU IN</small><h1>Create your account.</h1><p>Just a few details. Then you're ready to go.</p><form onsubmit="registerUser(event)"><div class="two"><label>First name<input id="registerFirst" autocomplete="given-name" required></label><label>Surname<input id="registerSurname" autocomplete="family-name" required></label></div><label>Phone<input id="registerPhone" type="tel" autocomplete="tel" required></label><label>Country<select id="registerCountry" required></select></label><label>Email<input id="registerEmail" type="email" autocomplete="email" required></label><label>Password<input id="registerPassword" type="password" minlength="6" autocomplete="new-password" required><small class="field-help">At least 6 characters.</small></label><button class="primary wide">Create account</button></form><p class="center">Already have an account? <button class="link-btn inline" onclick="go('login')">Sign in</button></p></div></div></section>
+<section id="admin" class="page"><div class="container content-pad"><div id="adminBox"></div></div></section>
+</main>
+<nav class="bottom-nav"><button id="navDiscover" onclick="go('discover')"><b>⌕</b><span>Discover</span></button><button id="navForyou" onclick="go('foryou')"><b>♡</b><span>For You</span></button><button id="navTickets" onclick="go('tickets')"><b>🎟</b><span>My Tickets</span></button><button id="navSell" onclick="go('sell')"><b>＋</b><span>Sell</span></button><button id="navAccount" onclick="go('account')"><b>☺</b><span>Account</span></button></nav>
+</div>
+<div id="toast" class="toast"></div><div id="sheet" class="sheet" onclick="if(event.target===this)closeSheet()"><div class="sheet-card"><button class="sheet-close" onclick="closeSheet()">×</button><div id="sheetBody"></div></div></div>
+<script src="config.js"></script><script src="app.js"></script>
+</body></html>
