@@ -1,44 +1,23 @@
-# TicketWAVES v3.2 — focused stability update
+TicketWAVES index.js replacement package
 
-This replacement is based on the uploaded v31 project. It keeps the existing TicketWAVES pages and APIs and focuses on the requested fixes:
+Files:
+- index.js                 Corrected replacement backend file.
+- backup/index.js.original Exact backup of the previous index.js source used as the backup.
 
-- Atomic ticket transfer ownership change.
-- Accepted transfer cannot be transferred again by the sender.
-- Accepted transfers repair stale ownership records when the recipient opens My Tickets.
-- Recipient first name, surname and email are retained on transfers.
-- New recipients can create an account from the transfer link and are automatically claimed into My Tickets.
-- Discover / For You event cards are smaller and responsive: horizontal on larger screens, vertical on phones.
-- My Tickets uses the same event-card visual language as Discover and exposes Section / Row / Seat before View Ticket.
-- View Ticket opens the full mobile ticket screen with the rotating/refreshing secure QR.
-- Ticket detail now includes order reference and ticket-holder name.
-- Existing admin event editing, artwork upload/URL, currency, giveaway and sell tools are preserved.
+Before replacing:
+1. Stop the backend service.
+2. Keep the backup/index.js.original file somewhere safe.
+3. Replace your backend index.js with the included index.js.
+4. Commit/push and redeploy on Render.
 
-## Deployment
+Important environment variables:
+- DATABASE_URL
+- JWT_SECRET
+- ADMIN_EMAIL
+- FRONTEND_URL
+- PUBLIC_API_URL
+- PAYSTACK_SECRET_KEY (if payments are enabled)
+- Email variables if email delivery is enabled.
 
-1. Back up the current frontend and backend repositories.
-2. Deploy `backend/` to the existing Render Web Service. Keep the same PostgreSQL database and environment variables.
-3. Wait for logs showing `TicketWAVES API listening on 0.0.0.0:10000` and `TicketWAVES PostgreSQL connected`.
-4. Deploy the `frontend/` files to the existing GitHub Pages repository.
-5. Test a transfer with a test ticket:
-   - Sender sends one ticket.
-   - Recipient opens the transfer link.
-   - New recipient creates an account using the transfer email.
-   - Acceptance completes.
-   - Recipient opens My Tickets and sees the ticket.
-   - Sender refreshes My Tickets and no longer sees that ticket.
-   - Sender cannot transfer that same ticket again.
-6. Test the View Ticket QR and verification page after the ownership change.
-
-## Important
-
-Do not wipe the existing PostgreSQL database. The backend includes startup migrations for transfer/ticket ownership columns so older TicketWAVES databases can be upgraded without deleting ticket data.
-
-
-## v33 Design Update
-- UI refresh only: frontend and backend/public mirrored from the working v32 baseline.
-- Backend API/index.js and package.json were intentionally left unchanged.
-- Mobile-first event cards, My Tickets cards, ticket details, admin dashboard, buttons, navigation and QR presentation refreshed.
-- Existing API routes, transfer/payment logic and database schema were preserved.
-
-
-TicketWAVES v34 design/performance update: compact mobile event cards, overflow protection, and image lazy-loading improvements. Working backend logic preserved.
+The replacement keeps PostgreSQL/Sequelize and adds the current transfer/ownership compatibility migration and secure ticket verification endpoints.
+No secrets are included in this package.
