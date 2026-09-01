@@ -26,6 +26,39 @@
 <section id="register" class="page"><div class="container narrow"><div class="auth-card"><div class="auth-logo pink">✦</div><small>LET'S GET YOU IN</small><h1>Create your account.</h1><p>Just a few details. Then you're ready to go.</p><form onsubmit="registerUser(event)"><div class="two"><label>First name<input id="registerFirst" autocomplete="given-name" required></label><label>Surname<input id="registerSurname" autocomplete="family-name" required></label></div><label>Phone<input id="registerPhone" type="tel" autocomplete="tel" required></label><label>Country<select id="registerCountry" required></select></label><label>Email<input id="registerEmail" type="email" autocomplete="email" required></label><label>Password<input id="registerPassword" type="password" minlength="6" autocomplete="new-password" required><small class="field-help">At least 6 characters.</small></label><button class="primary wide">Create account</button></form><p class="center">Already have an account? <button class="link-btn inline" onclick="go('login')">Sign in</button></p></div></div></section>
 <section id="admin" class="page"><div class="container content-pad"><div id="adminBox"></div></div></section>
 </main>
+</main>
+
+<footer class="site-footer">
+    <div class="container">
+        <h3>TicketWAVES</h3>
+
+        <p>
+            TicketWAVES is a live event ticket marketplace where fans can
+            discover, buy, sell and transfer tickets for concerts,
+            sports, theatre and entertainment events.
+        </p>
+
+        <div class="footer-links">
+            <a href="about.html">About Us</a>
+            <a href="contact.html">Contact Us</a>
+            <a href="help-center.html">Help Center</a>
+            <a href="terms.html">Terms</a>
+            <a href="privacy.html">Privacy</a>
+            <a href="refunds.html">Refund Policy</a>
+            <a href="seller-agreement.html">Seller Agreement</a>
+        </div>
+
+        <div class="footer-contact">
+            <p>Email: support@ticketwaves.top</p>
+            <p>Legal: legal@ticketwaves.top</p>
+        </div>
+
+        <p class="footer-copy">
+            © 2026 TicketWAVES. All Rights Reserved.
+        </p>
+    </div>
+</footer>
+
 <nav class="bottom-nav"><button id="navDiscover" onclick="go('discover')"><b>⌕</b><span>Discover</span></button><button id="navForyou" onclick="go('foryou')"><b>♡</b><span>For You</span></button><button id="navTickets" onclick="go('tickets')"><b>🎟</b><span>My Tickets</span></button><button id="navSell" onclick="go('sell')"><b>＋</b><span>Sell</span></button><button id="navAccount" onclick="go('account')"><b>☺</b><span>Account</span></button></nav>
 </div>
 <div id="toast" class="toast"></div><div id="sheet" class="sheet" onclick="if(event.target===this)closeSheet()"><div class="sheet-card"><button class="sheet-close" onclick="closeSheet()">×</button><div id="sheetBody"></div></div></div>
